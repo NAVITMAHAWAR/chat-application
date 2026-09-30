@@ -19,12 +19,13 @@ const LogOut = () => {
   };
 
   return (
-	<div className="flex h-full w-[4%] flex-col bg-gray-800 text-white">
-<div className="p-2 mt-auto flex justify-center">
+	<div className="flex h-full w-12 shrink-0 flex-col items-center rounded-none bg-[#18362f] py-3 text-white sm:w-[58px] sm:rounded-2xl sm:py-4">
+<div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 font-[Manrope] text-sm font-extrabold tracking-wide text-[#a9e4ce]" aria-label="Chatly">C</div>
+<div className="mt-auto flex justify-center p-1">
 			<button
 				type="button"
 				onClick={handleLogout}
-				className="cursor-pointer rounded-full p-2 text-2xl text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+				className="cursor-pointer rounded-xl p-2.5 text-[#c1d2cc] transition-colors hover:bg-white/10 hover:text-white"
 				title="Logout"
 				aria-label="Logout"
 			>

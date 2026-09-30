@@ -1,191 +1,263 @@
 import { useState } from "react";
-import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form"
-import axios from "axios"
+import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 import { useAuth } from "../context/authContext";
-import { useNavigate } from "react-router-dom";
 import API_URL from "../api";
+import toast from "react-hot-toast"
 
 const Register = () => {
-	const [, setAuthUser] = useAuth()
-	const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [, setAuthUser] = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState(1); // 1 = details, 2 = OTP
+  const [emailForOtp, setEmailForOtp] = useState("");
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
 
-	 const {
+  const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
-  } = useForm()
+  } = useForm();
 
-  const password = watch("password")
+  // Start resend countdown
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  };
 
-  const validatePasswordMatch = (value)=>{
-	return value === password || "Password and confirm password dont match"
-  }
+  // Step 1: Send OTP
+  const onSubmitDetails = async (data) => {
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/user/send-otp`,
+        {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        },
+        { withCredentials: true }
+      );
+      setEmailForOtp(res.data.email);
+      setStep(2);
+      startResendTimer();
+      toast.success("OTP sent to your email!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const onSubmit =async (data) => {
-		const userinfo = {
-			name: data.name,
-			email:data.email,
-			password: data.password,
-			confirmPassword: data.confirmPassword
-		}
-    await axios.post(`${API_URL}/user/register`,userinfo,{ withCredentials: true }).then((res)=>{
-			console.log(res.data)
+  // Step 2: Verify OTP
+  const onVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      toast.success("Please enter 6-digit OTP");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_URL}/user/verify-otp`,
+        { email: emailForOtp, otp },
+        { withCredentials: true }
+      );
+      localStorage.setItem("messenger", JSON.stringify(res.data));
+      setAuthUser(res.data);
+      toast.success("Registration successful!");
+      navigate(res.data?.user?.role === "admin" ? "/admin" : "/");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-			if(res.data){
-				alert("Register SuccessFully ")
-			}
-			localStorage.setItem("messenger",JSON.stringify(res.data))
-			setAuthUser(res.data)
-			navigate("/")
-		}).catch((error)=>{
-			if(error.response){
-        alert(error.response.data.message || error.response.data.error || "Registration failed")
-			}
-		})
-	}
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  // Resend OTP
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    setLoading(true);
+    try {
+      await axios.post(
+        `${API_URL}/user/resend-otp`,
+        { email: emailForOtp },
+        { withCredentials: true }
+      );
+      startResendTimer();
+      toast.success("OTP resent!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to resend");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-gray-100 text-gray-900 flex items-center justify-center p-4">
-      {/* Ambient glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-gray-300/40 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-gray-200/50 blur-3xl" />
+        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-gray-400/30 blur-3xl" />
+        <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-gray-300/30 blur-3xl" />
       </div>
 
-      <div className="relative w-full max-w-md bg-white/90 backdrop-blur border border-gray-200 rounded-2xl shadow-xl p-8">
-        {/* Header */}
+      <div className="relative w-full max-w-md bg-white/80 backdrop-blur border border-gray-200 rounded-2xl shadow-2xl p-8">
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 border border-gray-200 text-2xl">
             💬
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Create your account</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {step === 1 ? "Create account" : "Verify OTP"}
+          </h1>
           <p className="mt-2 text-sm text-gray-500">
-            Join and start chatting with your friends
+            {step === 1
+              ? "Fill details to get started"
+              : `OTP sent to ${emailForOtp}`}
           </p>
         </div>
 
-        {/* Form */}
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
-          {/* Username */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="username" className="text-sm text-gray-700">
-              Username
-            </label>
-			    {errors.name && <span className="text-red-700">**This field is required**</span>}
-            <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400 focus-within:border-gray-400 transition-all">
-              <FiUser className="text-gray-500" />
+        {/* STEP 1: Details */}
+        {step === 1 && (
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmitDetails)}>
+            {/* Name */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-gray-700">Name</label>
+              {errors.name && <span className="text-red-600 text-xs">Required</span>}
+              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
+                <FiUser className="text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  {...register("name", { required: true })}
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-gray-700">Email</label>
+              {errors.email && <span className="text-red-600 text-xs">Required</span>}
+              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
+                <FiMail className="text-gray-500" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  {...register("email", { required: true })}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-gray-700">Password</label>
+              {errors.password && <span className="text-red-600 text-xs">Required</span>}
+              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
+                <FiLock className="text-gray-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  {...register("password", { required: true, minLength: 6 })}
+                />
+                <button type="button" onClick={() => setShowPassword((v) => !v)}>
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-gray-700">Confirm Password</label>
+              {errors.confirmPassword && (
+                <span className="text-red-600 text-xs">Required</span>
+              )}
+              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
+                <FiLock className="text-gray-500" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  {...register("confirmPassword", { required: true })}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 rounded-lg bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 disabled:opacity-50 mt-2"
+            >
+              {loading ? "Sending OTP..." : "Send OTP"}
+            </button>
+          </form>
+        )}
+
+        {/* STEP 2: OTP */}
+        {step === 2 && (
+          <form className="flex flex-col gap-5" onSubmit={onVerifyOtp}>
+            <div>
+              <label className="text-sm text-gray-700">Enter 6-digit OTP</label>
               <input
-                id="username"
                 type="text"
-                placeholder="your name"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-900 outline-none placeholder-gray-400"
-              {...register("name", { required: true })}
-			  />
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                placeholder="000000"
+                className="w-full mt-2 px-4 py-3 text-center text-2xl tracking-[0.5em] font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
             </div>
-          </div>
 
-          {/* Email */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="email" className="text-sm text-gray-700">
-              Email
-            </label>
-			    {errors.email && <span className="text-red-700">**This field is required**</span>}
-            <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400 focus-within:border-gray-400 transition-all">
-              <FiMail className="text-gray-500" />
-              <input
-                id="email"
-                type="email"
-                placeholder="Enter Your Email"
-				className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-900 outline-none placeholder-gray-400"
-              {...register("email", { required: true })}
-			  />
+            <button
+              type="submit"
+              disabled={loading || otp.length !== 6}
+              className="w-full py-2.5 rounded-lg bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 disabled:opacity-50"
+            >
+              {loading ? "Verifying..." : "Verify & Register"}
+            </button>
+
+            <div className="text-center text-sm text-gray-500">
+              {resendTimer > 0 ? (
+                <span>Resend OTP in {resendTimer}s</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  className="text-gray-800 font-medium hover:underline"
+                >
+                  Resend OTP
+                </button>
+              )}
             </div>
-          </div>
 
-          {/* Password */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="password" className="text-sm text-gray-700">
-              Password
-            </label>
-			    {errors.password && <span className="text-red-700">**This field is required**</span>}
-            <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400 focus-within:border-gray-400 transition-all">
-              <FiLock className="text-gray-500" />
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-900 outline-none placeholder-gray-400"
-              {...register("password", { required: true })}
-			  />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
-                title={showPassword ? "Hide password" : "Show password"}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </button>
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={() => {
+                setStep(1);
+                setOtp("");
+              }}
+              className="text-sm text-gray-500 hover:text-gray-800"
+            >
+              ← Change email / details
+            </button>
+          </form>
+        )}
 
-          {/* Confirm password */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="confirmPassword" className="text-sm text-gray-700">
-              Confirm password
-            </label>
-			    {errors.confirmPassword && <span className="text-red-700">**This field is required**</span>}
-            <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400 focus-within:border-gray-400 transition-all">
-              <FiLock className="text-gray-500" />
-              <input
-                id="confirmPassword"
-                type={showConfirm ? "text" : "password"}
-                placeholder="••••••••"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-900 outline-none placeholder-gray-400"
-              {...register("confirmPassword", { required: true ,validate: validatePasswordMatch})}
-			  />
-              <button
-                type="button"
-                onClick={() => setShowConfirm((v) => !v)}
-                className="text-gray-500 hover:text-gray-900 transition-colors cursor-pointer"
-                title={showConfirm ? "Hide password" : "Show password"}
-                aria-label={showConfirm ? "Hide password" : "Show password"}
-              >
-                {showConfirm ? <FiEyeOff /> : <FiEye />}
-              </button>
-            </div>
-          </div>
-
-          {/* Terms */}
-          <label className="flex items-start gap-2 text-xs text-gray-500">
-            <input
-              type="checkbox"
-              name="terms"
-              className="mt-0.5 h-4 w-4 rounded accent-gray-600"
-            />
-            <span>
-              I agree to the Terms of Service and Privacy Policy
-            </span>
-          </label>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="w-full py-2.5 rounded-lg bg-gray-800 text-sm font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors cursor-pointer"
-          >
-            Sign up
-          </button>
-        </form>
-
-        {/* Footer */}
         <p className="mt-6 text-center text-sm text-gray-500">
-          Already have an account?{" "}
+          Already have an account?
           <Link to="/login" className="text-gray-900 font-medium hover:underline">
             Log in
           </Link>
@@ -195,4 +267,4 @@ const Register = () => {
   );
 };
 
-export default Register
+export default Register;

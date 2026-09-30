@@ -24,6 +24,19 @@ const useGetSocketMessage = () => {
       notification.play().catch(() => {
         // Browsers can block audio until the user interacts with the page.
       });
+
+      const senderId =
+        typeof newMessage.senderId === "object"
+          ? newMessage.senderId?._id
+          : newMessage.senderId;
+
+      if (socket && newMessage._id && senderId) {
+        socket.emit("messageDelivered", {
+          messageId: newMessage._id,
+          senderId,
+        });
+      }
+
       if (!isCurrentConversation) return;
       setMessages((currentMessages) => [...currentMessages, newMessage]);
     };

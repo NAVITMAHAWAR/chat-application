@@ -20,14 +20,13 @@ const Left = () => {
 	}
 
   return (
-	<div className="flex h-full w-[30%] flex-col border-r border-gray-200 bg-white text-gray-900">
-	 <div className="flex items-center justify-between p-2"><h1 className="m-2 text-3xl font-bold">Chats</h1><CreateGroup onCreated={(group) => { setGroups((current) => [group, ...current]); selectGroup(group); }} /></div>
+	<div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-none border border-[#e3e9e6] bg-white text-[#17211f] shadow-[0_12px_40px_rgba(26,53,43,0.06)] sm:rounded-2xl">
+	 <div className="flex items-center justify-between border-b border-[#edf1ef] px-5 py-5"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#087f68]">Your space</p><h1 className="mt-1 font-[Manrope] text-2xl font-bold">Messages</h1></div><CreateGroup onCreated={(group) => { setGroups((current) => [group, ...current]); selectGroup(group); }} /></div>
 		<Search value={search} onChange={setSearch}/>
-		<hr className="border-gray-200" />
 		<Users search={search}/>
-		{groups.length > 0 && <div className="max-h-48 overflow-y-auto border-t border-gray-200 bg-white px-3 py-3">
-			<p className="mb-2 px-1 text-xs font-medium uppercase tracking-[0.2em] text-gray-500">Groups</p>
-			<div className="space-y-2">{groups.map((group) => <button type="button" key={group._id} onClick={() => selectGroup(group)} className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selectConversation?._id === group._id ? "border-gray-500 bg-gray-100" : "border-gray-200 bg-white hover:bg-gray-50"}`}><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-800 text-sm font-bold text-white">G</span><span className="truncate text-sm font-semibold text-gray-900">{group.name}</span></button>)}</div>
+		{groups.length > 0 && <div className="max-h-52 overflow-y-auto border-t border-[#edf1ef] bg-white px-4 py-4">
+			<p className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#71807b]">Groups</p>
+			<div className="space-y-1.5">{groups.map((group) => <button type="button" key={group._id} onClick={() => selectGroup(group)} className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selectConversation?._id === group._id ? "border-[#b9e1d3] bg-[#eff8f4]" : "border-transparent bg-white hover:bg-[#f5f8f6]"}`}><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#e5f4ef] text-sm font-bold text-[#087f68]">G</span><span className="truncate text-sm font-semibold text-[#17211f]">{group.name}</span></button>)}</div>
 		</div>}
 	</div>
   )

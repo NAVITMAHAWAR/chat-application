@@ -46,32 +46,29 @@ function User(props) {
   };
 
   return (
-    <div className={`group flex cursor-pointer items-center gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50 ${isSelected ? "border-gray-500 bg-gray-100" : ""}`}   onClick={handleSelect}
+    <button type="button" className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-transparent p-3 text-left transition-colors hover:bg-[#f5f8f6] ${isSelected ? "border-[#c6e6da] bg-[#eff8f4]" : ""}`} onClick={handleSelect}
     >
 
-      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-700 text-sm font-bold text-white shadow-md shadow-gray-300">
+      <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-[#e5f4ef] text-sm font-bold text-[#087f68]">
         {profilePic ? (
-          <img src={profilePic} alt={userName} className="h-full w-full rounded-2xl object-cover" />
+          <img src={profilePic} alt={userName} className="h-full w-full rounded-[14px] object-cover" />
         ) : (
           initials
         )}
-        <span className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white ${isOnline ? "bg-green-500" : "bg-gray-400"}`} />
+        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${isOnline ? "bg-[#24a47c]" : "bg-[#bdc7c2]"}`} />
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="truncate text-sm font-semibold text-gray-900">{userName}</h3>
-          <span className="text-[10px] text-gray-400">Now</span>
+          <h3 className="truncate text-sm font-semibold text-[#17211f]">{userName}</h3>
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-gray-500">{userEmail}</p>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${isOnline ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-           {isOnline ? "Online" : "Offline"}
-          </span>
+          <p className="truncate text-xs text-[#71807b]">{isOnline ? "Online now" : userEmail}</p>
+          {isOnline && <span className="shrink-0 text-[10px] font-semibold text-[#168263]">Active</span>}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 

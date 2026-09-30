@@ -1,6 +1,7 @@
 import axios from "axios";
 import useConversation from "../stateManage/conversation.js";
 import API_URL from "../api";
+import toast from "react-hot-toast";
 
 const useSendMessage = () => {
   const { setMessages, selectConversation } = useConversation();
@@ -24,7 +25,7 @@ const useSendMessage = () => {
       setMessages((currentMessages) => [...currentMessages, newMessage]);
       return true;
     } catch (error) {
-      console.log("Error from send messages", error);
+      toast.error(error.response?.data?.message || "Message could not be sent");
       return false;
     }
   };

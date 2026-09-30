@@ -31,6 +31,17 @@ const messageSchema = mongoose.Schema(
         },
       ],
     },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "read"],
+      default: "sent",
+    },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

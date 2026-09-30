@@ -3,6 +3,8 @@ import useGetMessage from "../context/useGetMessage.js"
 import useGetSocketMessage from "../context/usegetSocketMessage.js"
 import useConversation from "../stateManage/conversation.js"
 import Messages from "./Messages.jsx"
+import TypingIndicator from "./TypingIndicator.jsx";
+import useTypingAndRead from "../context/useTypingAndRead.js";
 
 /**
  * @typedef {{_id?: string, message?: string, senderId?: string | {_id?: string}}} MessageItem
@@ -11,16 +13,21 @@ import Messages from "./Messages.jsx"
 
 const Message = () => {
 	useGetSocketMessage()
+	useTypingAndRead();
 	const {messages} = useGetMessage()
 	const selectConversation = useConversation((state) => state.selectConversation)
+	const typingUsers = useConversation((state) => state.typingUsers)
 	const messageEndRef = useRef(null)
+	const typingSenderId = selectConversation?._id
+		? typingUsers[selectConversation._id]
+		: undefined
 	const messageList = /** @type {MessageItem[]} */ (
 		Array.isArray(messages) ? messages : messages?.message || []
 	)
 
 	useEffect(() => {
 		messageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
-	}, [messageList.length, selectConversation?._id])
+	}, [messageList.length, selectConversation?._id, typingSenderId])
 
 	const renderedMessages = []
 	for (let index = 0; index < messageList.length; index += 1) {
@@ -37,6 +44,7 @@ const Message = () => {
 				{selectConversation ? "Say hi!" : "Select a conversation to start chatting."}
 			</p>
 		)}
+		<TypingIndicator />
 		<div ref={messageEndRef} aria-hidden="true" />
 	</div>
   )

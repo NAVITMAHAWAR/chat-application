@@ -48,6 +48,19 @@ export const sendMessage = async (req, res) => {
 
     if (receiverSocketID) {
       io.to(receiverSocketID).emit("newMessage", newMessage);
+
+      // Mark as delivered immediately if receiver is online
+      await Message.findByIdAndUpdate(newMessage._id, { status: "delivered" });
+      newMessage.status = "delivered";
+
+      // Tell sender that it was delivered
+      const senderSocketID = getReceiverSocketId(senderId);
+      if (senderSocketID) {
+        io.to(senderSocketID).emit("messageStatusUpdate", {
+          messageId: newMessage._id,
+          status: "delivered",
+        });
+      }
     }
 
     res.status(201).json({
