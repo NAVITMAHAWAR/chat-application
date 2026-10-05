@@ -23,6 +23,15 @@ export const sendMessage = async (req, res) => {
     if (!(await User.exists({ _id: receiverId }))) {
       return res.status(404).json({ message: "Recipient not found" });
     }
+    const sender = await User.findById(senderId).select("friends");
+    const isFriend = sender?.friends?.some(
+      (id) => String(id) === String(receiverId),
+    );
+    if (!isFriend) {
+      return res.status(403).json({
+        message: "You can only message friends. Send a friend request first.",
+      });
+    }
 
     let conversation = await Conversations.findOne({
       participants: { $all: [senderId, receiverId] },
@@ -55,6 +64,8 @@ export const sendMessage = async (req, res) => {
 
       // Tell sender that it was delivered
       const senderSocketID = getReceiverSocketId(senderId);
+
+      
       if (senderSocketID) {
         io.to(senderSocketID).emit("messageStatusUpdate", {
           messageId: newMessage._id,
@@ -216,6 +227,15 @@ export const getMessage = async (req, res) => {
     if (!mongoose.isValidObjectId(chatUser)) {
       return res.status(400).json({ message: "Invalid conversation user" });
     }
+    const sender = await User.findById(senderId).select("friends");
+    const isFriend = sender?.friends?.some(
+      (id) => String(id) === String(chatUser),
+    );
+    if (!isFriend) {
+      return res.status(403).json({
+        message: "You can only message friends. Send a friend request first.",
+      });
+    }
     const conversation = await Conversations.findOne({
       participants: { $all: [senderId, chatUser] },
     }).populate("message");
@@ -230,5 +250,131 @@ export const getMessage = async (req, res) => {
     res.status(500).json({
       message: "Internal server error",
     });
+  }
+};
+
+
+// ───── Send media (DM) ─────
+export const sendMediaMessage = async (req, res) => {
+  try {
+    const { id: receiverId } = req.params;
+    const senderId = req.user._id;
+    const caption = (req.body.message || "").trim();
+
+    if (!mongoose.isValidObjectId(receiverId)) {
+      return res.status(400).json({ message: "Invalid recipient" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    if (!(await User.exists({ _id: receiverId }))) {
+      return res.status(404).json({ message: "Recipient not found" });
+    }
+
+    // Optional: friends-only check (agar friend system lagaya hai)
+    const sender = await User.findById(senderId).select("friends");
+    if (!sender?.friends?.some((id) => String(id) === String(receiverId))) {
+      return res.status(403).json({ message: "You can only message friends" });
+    }
+
+    let conversation = await Conversations.findOne({
+      participants: { $all: [senderId, receiverId] },
+      isGroup: { $ne: true },
+    });
+
+    if (!conversation) {
+      conversation = await Conversations.create({
+        participants: [senderId, receiverId],
+      });
+    }
+
+    const isImage = req.file.mimetype.startsWith("image/");
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    const newMessage = await Message.create({
+      senderId,
+      receiverId,
+      conversationId: conversation._id,
+      message: caption,
+      messageType: isImage ? "image" : "file",
+      fileUrl,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+    });
+
+    conversation.message.push(newMessage._id);
+    await conversation.save();
+
+    const receiverSocketID = getReceiverSocketId(receiverId);
+    if (receiverSocketID) {
+      io.to(receiverSocketID).emit("newMessage", newMessage);
+      await Message.findByIdAndUpdate(newMessage._id, { status: "delivered" });
+      newMessage.status = "delivered";
+    }
+
+    res.status(201).json({
+      message: "Media sent successfully",
+      newMessage,
+    });
+  } catch (error) {
+    console.log("Error from send media:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ───── Send media (Group) ─────
+export const sendGroupMediaMessage = async (req, res) => {
+  try {
+    const { id: groupId } = req.params;
+    const caption = (req.body.message || "").trim();
+
+    if (!mongoose.isValidObjectId(groupId) || !req.file) {
+      return res.status(400).json({ message: "Valid group and file required" });
+    }
+
+    const group = await Conversations.findOne({
+      _id: groupId,
+      isGroup: true,
+      participants: req.user._id,
+    });
+    if (!group) return res.status(404).json({ message: "Group not found" });
+
+    const isImage = req.file.mimetype.startsWith("image/");
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    const newMessage = await Message.create({
+      senderId: req.user._id,
+      conversationId: group._id,
+      message: caption,
+      messageType: isImage ? "image" : "file",
+      fileUrl,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+    });
+
+    group.message.push(newMessage._id);
+    await group.save();
+
+    const messageWithSender = await Message.findById(newMessage._id).populate(
+      "senderId",
+      "name email"
+    );
+
+    const socketIds = getReceiverSocketIds(
+      group.participants.filter((id) => String(id) !== String(req.user._id))
+    );
+    socketIds.forEach((socketId) =>
+      io.to(socketId).emit("newMessage", messageWithSender)
+    );
+
+    res.status(201).json({
+      message: "Media sent successfully",
+      newMessage: messageWithSender,
+    });
+  } catch (error) {
+    console.log("Error from group media:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

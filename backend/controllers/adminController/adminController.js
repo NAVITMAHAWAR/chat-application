@@ -48,7 +48,7 @@ export const getAllUsers = async (req, res) => {
     const [users, total] = await Promise.all([
       User.find(filter)
         .select("-password")
-        .sort({ createdAt: -1 })
+        .sort({ role: 1, createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
       User.countDocuments(filter),

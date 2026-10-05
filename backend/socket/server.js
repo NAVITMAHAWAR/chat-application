@@ -44,22 +44,22 @@ io.on("connection", (socket) => {
   }
 
   // ───────── TYPING ─────────
-  socket.on("typing", ({ receiverId, conversationId }) => {
+  socket.on("typing", ({ receiverId }) => {
     const receiverSocketIds = getReceiverSocketIds([receiverId]);
     receiverSocketIds.forEach((receiverSocketId) => {
       io.to(receiverSocketId).emit("typing", {
         senderId: userId,
-        conversationId,
+        conversationId: userId,
       });
     });
   });
 
-  socket.on("stopTyping", ({ receiverId, conversationId }) => {
+  socket.on("stopTyping", ({ receiverId }) => {
     const receiverSocketIds = getReceiverSocketIds([receiverId]);
     receiverSocketIds.forEach((receiverSocketId) => {
       io.to(receiverSocketId).emit("stopTyping", {
         senderId: userId,
-        conversationId,
+        conversationId: userId,
       });
     });
   });

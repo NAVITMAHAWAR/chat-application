@@ -29,7 +29,22 @@ const useGetAllUsers = () => {
           },
         });
 
-        setAllUsers(response.data || { filtredUser: [] });
+        let loggedInUserId;
+        try {
+          loggedInUserId = JSON.parse(localStorage.getItem("messenger") || "null")?.user?._id;
+        } catch {
+          loggedInUserId = null;
+        }
+
+        const users = Array.isArray(response.data?.filtredUser)
+          ? response.data.filtredUser
+          : [];
+        setAllUsers({
+          ...response.data,
+          filtredUser: loggedInUserId
+            ? users.filter((user) => String(user?._id) !== String(loggedInUserId))
+            : users,
+        });
       } catch (error) {
         console.log("error from getAll users", error);
       } finally {

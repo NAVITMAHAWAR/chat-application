@@ -36,52 +36,55 @@ const EditUserModal = ({ user, onClose, onSuccess }) => {
           <div><h3 className="font-[Manrope] text-lg font-bold text-[#17211f]">Edit user</h3><p className="text-xs text-[#71807b]">Update account details</p></div>
           <button type="button" onClick={onClose} aria-label="Close" className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-[#71807b] hover:bg-[#f1f5f3]"><FiX /></button>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <label className="text-sm text-gray-600">Name</label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="edit-user-name" className="text-xs font-semibold text-[#34423d]">Name</label>
+              {errors.name && <span className="text-xs text-rose-600">{errors.name.message}</span>}
+            </div>
             <input
-              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              id="edit-user-name"
+              className="h-11 w-full rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 text-sm text-[#17211f] outline-none transition focus:border-[#87bda8] focus:bg-white"
               {...register("name", { required: "Name is required" })}
             />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-            )}
           </div>
-          <div>
-            <label className="text-sm text-gray-600">Email</label>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="edit-user-email" className="text-xs font-semibold text-[#34423d]">Email</label>
+              {errors.email && <span className="text-xs text-rose-600">{errors.email.message}</span>}
+            </div>
             <input
+              id="edit-user-email"
               type="email"
-              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className="h-11 w-full rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 text-sm text-[#17211f] outline-none transition focus:border-[#87bda8] focus:bg-white"
               {...register("email", { required: "Email is required" })}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-            )}
           </div>
-          <div>
-            <label className="text-sm text-gray-600">Role</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="edit-user-role" className="text-xs font-semibold text-[#34423d]">Role</label>
             <select
-              className="w-full mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+              id="edit-user-role"
+              className="h-11 w-full rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3 text-sm text-[#34423d] outline-none transition focus:border-[#87bda8] focus:bg-white"
               {...register("role")}
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-          <div className="flex gap-2 justify-end pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50"
+              className="h-10 rounded-xl border border-[#e1e8e4] px-4 text-sm font-semibold text-[#53625c] transition hover:bg-[#f1f5f3]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm rounded-lg bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50"
+              className="h-10 rounded-xl bg-[#183b32] px-4 text-sm font-semibold text-white transition hover:bg-[#245346] disabled:cursor-wait disabled:opacity-60"
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isSubmitting ? "Saving..." : "Save changes"}
             </button>
           </div>
         </form>

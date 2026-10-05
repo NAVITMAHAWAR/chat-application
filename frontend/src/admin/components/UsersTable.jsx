@@ -22,6 +22,7 @@ const UsersTable = () => {
   const { socket } = useSocketContext() || {};
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
@@ -32,8 +33,17 @@ const UsersTable = () => {
   const load = () => fetchUsers({ search, status, page, limit: 15 });
 
   useEffect(() => {
-    fetchUsers({ search, status, page, limit: 15 });
-  }, [fetchUsers, search, status, page]);
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  useEffect(() => {
+    fetchUsers({ search: debouncedSearch, status, page, limit: 15 });
+  }, [fetchUsers, debouncedSearch, status, page]);
 
   // Live socket updates
   useEffect(() => {
@@ -128,10 +138,7 @@ const UsersTable = () => {
           placeholder="Search name or email..."
           className="h-10 w-full rounded-xl border border-[#e1e8e4] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#c5e6d9] sm:max-w-xs"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <select
           className="h-10 w-full rounded-xl border border-[#e1e8e4] bg-white px-3 text-sm text-[#34423d] focus:outline-none focus:ring-2 focus:ring-[#c5e6d9] sm:w-40"

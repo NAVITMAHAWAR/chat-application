@@ -10,6 +10,12 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     isOnline: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     lastLogin: { type: Date },

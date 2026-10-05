@@ -14,13 +14,13 @@ const TypingIndicator = () => {
     : selectConversation.name || "User";
 
   return (
-    <div className="px-4 py-1 text-xs text-gray-500 italic flex items-center gap-1">
-      <span className="flex gap-0.5">
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+    <div className="flex items-center gap-2.5 px-4 py-2">
+      <span className="flex shrink-0 items-center gap-1 rounded-full bg-[#e5f4ef] px-2.5 py-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#087f68] animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#087f68] animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="h-1.5 w-1.5 rounded-full bg-[#087f68] animate-bounce" style={{ animationDelay: "300ms" }} />
       </span>
-      {name} is typing...
+      <span className="text-xs font-medium text-[#087f68]">{name} is typing…</span>
     </div>
   );
 };

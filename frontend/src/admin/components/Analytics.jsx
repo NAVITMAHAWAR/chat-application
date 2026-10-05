@@ -1,24 +1,56 @@
 import { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import ReactApexChart from "react-apexcharts";
 import { useAdminAnalytics } from "../hooks/useAdminAnalytics";
 import { useAdminStats } from "../hooks/useAdminStats";
 import { FiBarChart2 } from "react-icons/fi";
 
-const COLORS = ["#168263", "#e28b55", "#3488a4", "#d2a83f", "#657c73"];
+const CHART_COLORS = ["#168263", "#e28b55", "#3488a4", "#d2a83f", "#657c73"];
+
+const baseChartOptions = {
+  chart: {
+    type: "line",
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    background: "transparent",
+    fontFamily: "DM Sans, sans-serif",
+    foreColor: "#475569",
+  },
+  dataLabels: { enabled: false },
+  grid: {
+    borderColor: "#e2e8f0",
+    strokeDashArray: 3,
+  },
+  xaxis: {
+    labels: {
+      style: {
+        colors: ["#64748b"],
+        fontSize: "12px",
+      },
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: {
+    labels: {
+      style: {
+        colors: ["#64748b"],
+        fontSize: "11px",
+      },
+    },
+  },
+  tooltip: {
+    theme: "light",
+    shared: true,
+    intersect: false,
+  },
+  legend: {
+    position: "top",
+    horizontalAlign: "left",
+    fontSize: "12px",
+    markers: { radius: 9 },
+    itemMargin: { vertical: 6 },
+  },
+};
 
 const Analytics = () => {
   const { analytics, loading, error, fetchAnalytics } = useAdminAnalytics();
@@ -75,6 +107,94 @@ const Analytics = () => {
       messages: m.count,
     })) || [];
 
+  const lineOptions = {
+    ...baseChartOptions,
+    chart: {
+      ...baseChartOptions.chart,
+      type: "line",
+    },
+    colors: ["#3b82f6", "#22c55e"],
+    stroke: { width: 2.5, curve: "smooth" },
+    markers: { size: 4, strokeWidth: 0 },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: lineData.map((item) => item.date),
+    },
+  };
+
+  const barOptions = {
+    ...baseChartOptions,
+    chart: {
+      ...baseChartOptions.chart,
+      type: "bar",
+    },
+    colors: ["#087f68"],
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        columnWidth: "48%",
+      },
+    },
+    xaxis: {
+      ...baseChartOptions.xaxis,
+      categories: barData.map((item) => item.date),
+    },
+  };
+
+  const pieOptions = (title) => ({
+    chart: {
+      type: "donut",
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "DM Sans, sans-serif",
+    },
+    labels: [],
+    colors: CHART_COLORS,
+    legend: {
+      position: "bottom",
+      horizontalAlign: "center",
+      fontSize: "12px",
+      markers: { radius: 9 },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val) => `${Math.round(val)}%`,
+    },
+    tooltip: {
+      theme: "light",
+      y: { formatter: (value) => `${value}` },
+    },
+    title: {
+      text: title,
+      align: "left",
+      style: {
+        fontSize: "13px",
+        fontWeight: 700,
+        color: "#17211f",
+      },
+    },
+    stroke: { width: 0 },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "70%",
+        },
+      },
+    },
+  });
+
+  const lineSeries = [
+    { name: "Signups", data: lineData.map((item) => item.signups) },
+    { name: "Logins", data: lineData.map((item) => item.logins) },
+  ];
+
+  const barSeries = [
+    { name: "Messages", data: barData.map((item) => item.messages) },
+  ];
+
+  const onlineSeries = onlineData.map((item) => item.value);
+  const blockedSeries = blockedData.map((item) => item.value);
+
   return (
     <div className="page-enter mx-auto max-w-7xl space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -103,88 +223,57 @@ const Analytics = () => {
         </div>
       </div>
 
-      {/* Line Chart */}
       <div className="rounded-2xl border border-[#e3e9e6] bg-white p-5 shadow-[0_5px_24px_rgba(28,53,44,0.04)] sm:p-6">
         <h2 className="mb-4 font-[Manrope] text-sm font-bold text-[#26332f]">Signups and logins</h2>
         {lineData.length ? (
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="date" fontSize={12} />
-              <YAxis fontSize={12} allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="signups" stroke="#3b82f6" strokeWidth={2} name="Signups" />
-              <Line type="monotone" dataKey="logins" stroke="#22c55e" strokeWidth={2} name="Logins" />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full">
+            <ReactApexChart options={lineOptions} series={lineSeries} type="line" height={280} />
+          </div>
         ) : (
           <p className="text-center text-gray-400 py-10">No data for this range</p>
         )}
       </div>
 
-      {/* Bar Chart */}
       <div className="rounded-2xl border border-[#e3e9e6] bg-white p-5 shadow-[0_5px_24px_rgba(28,53,44,0.04)] sm:p-6">
         <h2 className="mb-4 font-[Manrope] text-sm font-bold text-[#26332f]">Messages per day</h2>
         {barData.length ? (
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="date" fontSize={12} />
-              <YAxis fontSize={12} allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="messages" fill="#087f68" radius={[4, 4, 0, 0]} name="Messages" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="w-full">
+            <ReactApexChart options={barOptions} series={barSeries} type="bar" height={260} />
+          </div>
         ) : (
           <p className="text-center text-gray-400 py-10">No message data</p>
         )}
       </div>
 
-      {/* Pie Charts */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-[#e3e9e6] bg-white p-5 shadow-[0_5px_24px_rgba(28,53,44,0.04)]">
           <h2 className="mb-4 font-[Manrope] text-sm font-bold text-[#26332f]">Online vs offline</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={onlineData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {onlineData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="w-full">
+            <ReactApexChart
+              options={{
+                ...pieOptions("Online vs offline"),
+                labels: onlineData.map((item) => item.name),
+              }}
+              series={onlineSeries}
+              type="donut"
+              height={220}
+            />
+          </div>
         </div>
 
         <div className="rounded-2xl border border-[#e3e9e6] bg-white p-5 shadow-[0_5px_24px_rgba(28,53,44,0.04)]">
           <h2 className="mb-4 font-[Manrope] text-sm font-bold text-[#26332f]">Active vs blocked</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={blockedData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {blockedData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[(i + 2) % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="w-full">
+            <ReactApexChart
+              options={{
+                ...pieOptions("Active vs blocked"),
+                labels: blockedData.map((item) => item.name),
+              }}
+              series={blockedSeries}
+              type="donut"
+              height={220}
+            />
+          </div>
         </div>
       </div>
     </div>

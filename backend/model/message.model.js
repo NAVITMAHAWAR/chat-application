@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "./userModel.js"
+import User from "./userModel.js";
 
 const messageSchema = mongoose.Schema(
   {
@@ -21,15 +21,41 @@ const messageSchema = mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
+      required: function () {
+        return this.messageType === "text";
+      },
       maxLength: 1000,
       trim: true,
       validate: [
         {
-          validator: (value) => value.length > 0,
+          validator: function (value) {
+            return this.messageType !== "text" || Boolean(value?.trim());
+          },
           message: "cannot be empty",
         },
       ],
+    },
+    // ── Media fields ──
+    messageType: {
+      type: String,
+      enum: ["text", "image", "file"],
+      default: "text",
+    },
+    fileUrl: {
+      type: String,
+      default: "",
+    },
+    fileName: {
+      type: String,
+      default: "",
+    },
+    fileSize: {
+      type: Number,
+      default: 0,
+    },
+    mimeType: {
+      type: String,
+      default: "",
     },
     status: {
       type: String,

@@ -7,6 +7,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { app, server } from "./socket/server.js";
 import adminRoute from "./router/adminRoute.js";
+import friendRoute from "./router/friendRoute.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 connectDB();
 app.use(express.json());
@@ -25,10 +28,15 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors(corsOptions));
 app.use("/user", userRoute);
 app.use("/api/message", messageRouter);
 app.use("/admin", adminRoute);
+app.use("/api/friends", friendRoute);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.send("welcome to the server");

@@ -29,14 +29,22 @@ html,
 body,
 #root {
 	min-width: 320px;
-	min-height: 100%;
+	width: 100%;
+	height: 100%;
 	margin: 0;
 }
 
+html,
 body {
-	min-height: 100vh;
+	overflow-x: hidden;
+}
+
+body {
+	height: 100vh;
 	background: var(--app-canvas);
 	color: var(--app-ink);
+	overflow-y: auto;
+	overscroll-behavior: none;
 }
 
 button,
@@ -62,6 +70,57 @@ select:focus-visible {
 ::selection {
 	background: #bfe9db;
 	color: #123b31;
+}
+
+.app-toast {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgb(255 255 255 / 72%);
+	background: linear-gradient(135deg, rgb(255 255 255 / 96%), rgb(244 250 247 / 96%));
+	color: var(--app-ink);
+	box-shadow: 0 18px 42px rgb(20 50 39 / 16%), 0 3px 10px rgb(20 50 39 / 7%);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+}
+
+.app-toast::before {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 4px;
+	content: "";
+	background: var(--toast-accent, var(--app-accent));
+}
+
+.app-toast::after {
+	position: absolute;
+	right: 14px;
+	bottom: 6px;
+	left: 16px;
+	height: 2px;
+	transform-origin: left;
+	content: "";
+	background: var(--toast-accent, var(--app-accent));
+	opacity: 0.28;
+	animation: toast-progress 3500ms linear both;
+}
+
+.app-toast--success {
+	--toast-accent: #087f68;
+}
+
+.app-toast--error {
+	--toast-accent: #c94f5d;
+	background: linear-gradient(135deg, rgb(255 255 255 / 98%), rgb(255 240 241 / 96%));
+}
+
+@keyframes toast-progress {
+	from {
+		transform: scaleX(1);
+	}
+
+	to {
+		transform: scaleX(0);
+	}
 }
 
 * {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from "react-icons/fi";
+import { FiArrowRight, FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiMessageCircle, FiShield } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
@@ -107,90 +107,104 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-100 text-gray-900 flex items-center justify-center p-4">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-gray-400/30 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-gray-300/30 blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md bg-white/80 backdrop-blur border border-gray-200 rounded-2xl shadow-2xl p-8">
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 border border-gray-200 text-2xl">
-            💬
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#edf3f0] px-4 py-10 text-[#17211f]">
+      <div className="pointer-events-none absolute inset-0 opacity-50" style={{ backgroundImage: "radial-gradient(#9ab5aa 0.7px, transparent 0.7px)", backgroundSize: "18px 18px" }} />
+      <div className="page-enter relative w-full max-w-110 rounded-2xl border border-white/80 bg-white px-6 py-8 shadow-[0_28px_80px_rgba(28,63,49,0.12)] sm:px-10 sm:py-10">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-5 grid h-12 w-12 place-items-center rounded-[15px] bg-[#e5f4ef] text-[#087f68]">
+            {step === 1 ? <FiMessageCircle size={22} /> : <FiShield size={22} />}
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {step === 1 ? "Create account" : "Verify OTP"}
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#087f68]">Chatly</p>
+          <h1 className="font-[Manrope] text-[27px] font-bold tracking-tight">
+            {step === 1 ? "Create your account" : "Verify your email"}
           </h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-[#71807b]">
             {step === 1
-              ? "Fill details to get started"
-              : `OTP sent to ${emailForOtp}`}
+              ? "Join your community in a few steps."
+              : `We sent a 6-digit code to ${emailForOtp}`}
           </p>
         </div>
 
         {/* STEP 1: Details */}
         {step === 1 && (
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmitDetails)}>
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit(onSubmitDetails)}>
             {/* Name */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-700">Name</label>
-              {errors.name && <span className="text-red-600 text-xs">Required</span>}
-              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
-                <FiUser className="text-gray-500" />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="name" className="text-xs font-semibold text-[#34423d]">Name</label>
+                {errors.name && <span className="text-xs text-rose-600">Name is required</span>}
+              </div>
+              <div className="flex h-12 items-center rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 transition focus-within:border-[#87bda8] focus-within:bg-white">
+                <FiUser className="text-[#83918b]" size={16} />
                 <input
+                  id="name"
                   type="text"
                   placeholder="Your name"
-                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  className="w-full bg-transparent px-3 text-sm text-[#17211f] outline-none placeholder:text-[#a0aba6]"
                   {...register("name", { required: true })}
                 />
               </div>
             </div>
 
             {/* Email */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-700">Email</label>
-              {errors.email && <span className="text-red-600 text-xs">Required</span>}
-              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
-                <FiMail className="text-gray-500" />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="email" className="text-xs font-semibold text-[#34423d]">Email</label>
+                {errors.email && <span className="text-xs text-rose-600">Email is required</span>}
+              </div>
+              <div className="flex h-12 items-center rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 transition focus-within:border-[#87bda8] focus-within:bg-white">
+                <FiMail className="text-[#83918b]" size={16} />
                 <input
+                  id="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  className="w-full bg-transparent px-3 text-sm text-[#17211f] outline-none placeholder:text-[#a0aba6]"
                   {...register("email", { required: true })}
                 />
               </div>
             </div>
 
             {/* Password */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-700">Password</label>
-              {errors.password && <span className="text-red-600 text-xs">Required</span>}
-              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
-                <FiLock className="text-gray-500" />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="password" className="text-xs font-semibold text-[#34423d]">Password</label>
+                {errors.password && <span className="text-xs text-rose-600">At least 6 characters required</span>}
+              </div>
+              <div className="flex h-12 items-center rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 transition focus-within:border-[#87bda8] focus-within:bg-white">
+                <FiLock className="text-[#83918b]" size={16} />
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  className="w-full bg-transparent px-3 text-sm text-[#17211f] outline-none placeholder:text-[#a0aba6]"
                   {...register("password", { required: true, minLength: 6 })}
                 />
-                <button type="button" onClick={() => setShowPassword((v) => !v)}>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-[#83918b] transition-colors hover:bg-[#edf3f0] hover:text-[#17211f]"
+                  title={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
                   {showPassword ? <FiEyeOff /> : <FiEye />}
                 </button>
               </div>
             </div>
 
             {/* Confirm Password */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm text-gray-700">Confirm Password</label>
-              {errors.confirmPassword && (
-                <span className="text-red-600 text-xs">Required</span>
-              )}
-              <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg px-3 focus-within:ring-2 focus-within:ring-gray-400">
-                <FiLock className="text-gray-500" />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="confirmPassword" className="text-xs font-semibold text-[#34423d]">Confirm password</label>
+                {errors.confirmPassword && <span className="text-xs text-rose-600">Confirm your password</span>}
+              </div>
+              <div className="flex h-12 items-center rounded-xl border border-[#e1e8e4] bg-[#f8faf9] px-3.5 transition focus-within:border-[#87bda8] focus-within:bg-white">
+                <FiLock className="text-[#83918b]" size={16} />
                 <input
+                  id="confirmPassword"
                   type="password"
                   placeholder="••••••••"
-                  className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                  className="w-full bg-transparent px-3 text-sm text-[#17211f] outline-none placeholder:text-[#a0aba6]"
                   {...register("confirmPassword", { required: true })}
                 />
               </div>
@@ -199,9 +213,9 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 disabled:opacity-50 mt-2"
+              className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#183b32] text-sm font-semibold text-white transition hover:bg-[#245346] disabled:cursor-wait disabled:opacity-60"
             >
-              {loading ? "Sending OTP..." : "Send OTP"}
+              {loading ? "Sending code..." : "Create account"}<FiArrowRight aria-hidden="true" />
             </button>
           </form>
         )}
@@ -209,36 +223,39 @@ const Register = () => {
         {/* STEP 2: OTP */}
         {step === 2 && (
           <form className="flex flex-col gap-5" onSubmit={onVerifyOtp}>
-            <div>
-              <label className="text-sm text-gray-700">Enter 6-digit OTP</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="otp" className="text-xs font-semibold text-[#34423d]">6-digit code</label>
               <input
+                id="otp"
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 maxLength={6}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 placeholder="000000"
-                className="w-full mt-2 px-4 py-3 text-center text-2xl tracking-[0.5em] font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="h-14 w-full rounded-xl border border-[#e1e8e4] bg-[#f8faf9] text-center font-[Manrope] text-2xl font-bold tracking-[0.4em] text-[#17211f] outline-none transition placeholder:text-[#c3cdc8] focus:border-[#87bda8] focus:bg-white"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="w-full py-2.5 rounded-lg bg-gray-700 text-sm font-medium text-white hover:bg-gray-600 disabled:opacity-50"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#183b32] text-sm font-semibold text-white transition hover:bg-[#245346] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Verifying..." : "Verify & Register"}
+              {loading ? "Verifying..." : "Verify and continue"}<FiArrowRight aria-hidden="true" />
             </button>
 
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-[#71807b]">
               {resendTimer > 0 ? (
-                <span>Resend OTP in {resendTimer}s</span>
+                <span>Resend code in {resendTimer}s</span>
               ) : (
                 <button
                   type="button"
                   onClick={handleResend}
-                  className="text-gray-800 font-medium hover:underline"
+                  className="font-semibold text-[#087f68] hover:text-[#066b58]"
                 >
-                  Resend OTP
+                  Resend code
                 </button>
               )}
             </div>
@@ -249,17 +266,17 @@ const Register = () => {
                 setStep(1);
                 setOtp("");
               }}
-              className="text-sm text-gray-500 hover:text-gray-800"
+              className="text-sm text-[#71807b] hover:text-[#17211f]"
             >
-              ← Change email / details
+              ← Change email or details
             </button>
           </form>
         )}
 
-        <p className="mt-6 text-center text-sm text-gray-500">
-          Already have an account?
-          <Link to="/login" className="text-gray-900 font-medium hover:underline">
-            Log in
+        <p className="mt-7 text-center text-sm text-[#71807b]">
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-[#087f68] hover:text-[#066b58]">
+            Sign in
           </Link>
         </p>
       </div>

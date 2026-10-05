@@ -1,18 +1,36 @@
 import { Router } from "express";
 import {
-	createGroup,
-	getGroupMessages,
-	getGroups,
-	getMessage,
-	sendGroupMessage,
-	sendMessage,
+  createGroup,
+  getGroupMessages,
+  getGroups,
+  getMessage,
+  sendGroupMessage,
+  sendMessage,
+  sendMediaMessage,
+  sendGroupMediaMessage,
 } from "../controllers/message.controller.js";
 import { secureRoute } from "../middleware/secureRoute.js";
+import { upload } from "../middleware/upload.js";
 
 const messageRouter = Router();
 
 messageRouter.post("/send/:id", secureRoute, sendMessage);
 messageRouter.get("/get/:id", secureRoute, getMessage);
+
+// Media (image / file)
+messageRouter.post(
+  "/send-media/:id",
+  secureRoute,
+  upload.single("file"),
+  sendMediaMessage,
+);
+messageRouter.post(
+  "/groups/:id/send-media",
+  secureRoute,
+  upload.single("file"),
+  sendGroupMediaMessage,
+);
+
 messageRouter.post("/groups", secureRoute, createGroup);
 messageRouter.get("/groups", secureRoute, getGroups);
 messageRouter.post("/groups/:id/send", secureRoute, sendGroupMessage);
