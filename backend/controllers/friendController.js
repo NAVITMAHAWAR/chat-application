@@ -1,7 +1,10 @@
 import FriendRequest from "../model/friendRequest.model.js";
+import Conversations from "../model/conversation.model.js";
 import User from "../model/userModel.js";
 import mongoose from "mongoose";
 import { getReceiverSocketIds, io } from "../socket/server.js";
+
+const SEARCH_PAGE_SIZE = 10;
 
 // ───── Send Request ─────
 export const sendFriendRequest = async (req, res) => {
@@ -174,11 +177,38 @@ export const cancelFriendRequest = async (req, res) => {
 // ───── Get my friends ─────
 export const getFriends = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
-      .populate("friends", "name email isOnline")
-      .select("friends");
+    const [user, conversations] = await Promise.all([
+      User.findById(req.user._id)
+        .populate("friends", "name email isOnline")
+        .select("friends"),
+      Conversations.find({
+        participants: req.user._id,
+        isGroup: { $ne: true },
+      })
+        .select("participants updatedAt")
+        .sort({ updatedAt: -1 }),
+    ]);
 
-    res.status(200).json({ friends: user?.friends || [] });
+    const recentRanks = new Map();
+    conversations.forEach((conversation) => {
+      const friendId = conversation.participants.find(
+        (participantId) => String(participantId) !== String(req.user._id),
+      );
+      if (friendId && !recentRanks.has(String(friendId))) {
+        recentRanks.set(String(friendId), recentRanks.size);
+      }
+    });
+
+    const friends = (user?.friends || [])
+      .map((friend, index) => ({ friend, index }))
+      .sort((left, right) => {
+        const leftRank = recentRanks.get(String(left.friend._id)) ?? Infinity;
+        const rightRank = recentRanks.get(String(right.friend._id)) ?? Infinity;
+        return leftRank - rightRank || left.index - right.index;
+      })
+      .map(({ friend }) => friend);
+
+    res.status(200).json({ friends });
   } catch (error) {
     console.log("getFriends error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -219,10 +249,25 @@ export const getOutgoingRequests = async (req, res) => {
   }
 };
 
-// ───── Search users to add (not already friends / not self) ─────
-export const searchUsers = async (req, res) => {
+const getPeoplePage = async (req, res, query = "") => {
   try {
-    const { q = "" } = req.query;
+    const { cursor } = req.query;
+    const searchTerm = typeof query === "string" ? query.trim() : "";
+    let cursorData;
+    if (cursor) {
+      try {
+        cursorData = JSON.parse(Buffer.from(cursor, "base64url").toString());
+      } catch {
+        return res.status(400).json({ message: "Invalid cursor" });
+      }
+      if (
+        typeof cursorData.name !== "string" ||
+        !mongoose.isValidObjectId(cursorData.id)
+      ) {
+        return res.status(400).json({ message: "Invalid cursor" });
+      }
+    }
+
     const me = await User.findById(req.user._id).select("friends");
     const friendIds = (me?.friends || []).map(String);
     friendIds.push(String(req.user._id));
@@ -230,17 +275,38 @@ export const searchUsers = async (req, res) => {
     const filter = {
       _id: { $nin: friendIds },
     };
-    if (q.trim()) {
+    if (searchTerm) {
       filter.$or = [
-        { name: { $regex: q.trim(), $options: "i" } },
-        { email: { $regex: q.trim(), $options: "i" } },
+        { name: { $regex: searchTerm, $options: "i" } },
+        { email: { $regex: searchTerm, $options: "i" } },
+      ];
+    }
+    if (cursorData) {
+      filter.$and = [
+        {
+          $or: [
+            { name: { $gt: cursorData.name } },
+            {
+              name: cursorData.name,
+              _id: { $gt: new mongoose.Types.ObjectId(cursorData.id) },
+            },
+          ],
+        },
       ];
     }
 
-    const users = await User.find(filter)
+    const page = await User.find(filter)
       .select("name email isOnline")
-      .limit(20)
-      .sort({ name: 1 });
+      .limit(SEARCH_PAGE_SIZE + 1)
+      .sort({ name: 1, _id: 1 });
+    const hasMore = page.length > SEARCH_PAGE_SIZE;
+    const users = page.slice(0, SEARCH_PAGE_SIZE);
+    const lastUser = users[users.length - 1];
+    const nextCursor = hasMore
+      ? Buffer.from(
+          JSON.stringify({ name: lastUser.name, id: String(lastUser._id) }),
+        ).toString("base64url")
+      : null;
 
     // Attach request status if any
     const pending = await FriendRequest.find({
@@ -269,12 +335,19 @@ export const searchUsers = async (req, res) => {
       };
     });
 
-    res.status(200).json({ users: result });
+    res.status(200).json({ users: result, nextCursor });
   } catch (error) {
-    console.log("searchUsers error:", error);
+    console.log("getPeoplePage error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// ───── Browse users to add (not already friends / not self) ─────
+export const getPeople = (req, res) => getPeoplePage(req, res);
+
+// ───── Search users to add (not already friends / not self) ─────
+export const searchUsers = (req, res) =>
+  getPeoplePage(req, res, req.query.q);
 
 // ───── Unfriend ─────
 export const unfriend = async (req, res) => {

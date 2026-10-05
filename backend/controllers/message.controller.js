@@ -53,10 +53,16 @@ export const sendMessage = async (req, res) => {
     conversation.message.push(newMessage._id);
     await conversation.save();
 
-    const receiverSocketID = getReceiverSocketId(receiverId);
+    const populatedMessage = await Message.findById(newMessage._id).populate(
+      "senderId",
+      "name email",
+    );
+    const receiverSocketIds = getReceiverSocketIds([receiverId]);
 
-    if (receiverSocketID) {
-      io.to(receiverSocketID).emit("newMessage", newMessage);
+    if (receiverSocketIds.length > 0) {
+      receiverSocketIds.forEach((socketId) =>
+        io.to(socketId).emit("newMessage", populatedMessage),
+      );
 
       // Mark as delivered immediately if receiver is online
       await Message.findByIdAndUpdate(newMessage._id, { status: "delivered" });
@@ -65,7 +71,6 @@ export const sendMessage = async (req, res) => {
       // Tell sender that it was delivered
       const senderSocketID = getReceiverSocketId(senderId);
 
-      
       if (senderSocketID) {
         io.to(senderSocketID).emit("messageStatusUpdate", {
           messageId: newMessage._id,
@@ -253,6 +258,28 @@ export const getMessage = async (req, res) => {
   }
 };
 
+export const getUnreadCounts = async (req, res) => {
+  try {
+    const unreadCounts = await Message.aggregate([
+      {
+        $match: {
+          receiverId: new mongoose.Types.ObjectId(String(req.user._id)),
+          status: { $ne: "read" },
+        },
+      },
+      { $group: { _id: "$senderId", count: { $sum: 1 } } },
+    ]);
+
+    res.status(200).json({
+      unreadCounts: Object.fromEntries(
+        unreadCounts.map(({ _id, count }) => [String(_id), count]),
+      ),
+    });
+  } catch (error) {
+    console.log("getUnreadCounts error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // ───── Send media (DM) ─────
 export const sendMediaMessage = async (req, res) => {
@@ -306,9 +333,11 @@ export const sendMediaMessage = async (req, res) => {
     conversation.message.push(newMessage._id);
     await conversation.save();
 
-    const receiverSocketID = getReceiverSocketId(receiverId);
-    if (receiverSocketID) {
-      io.to(receiverSocketID).emit("newMessage", newMessage);
+    const receiverSocketIds = getReceiverSocketIds([receiverId]);
+    if (receiverSocketIds.length > 0) {
+      receiverSocketIds.forEach((socketId) =>
+        io.to(socketId).emit("newMessage", newMessage),
+      );
       await Message.findByIdAndUpdate(newMessage._id, { status: "delivered" });
       newMessage.status = "delivered";
     }
@@ -359,14 +388,14 @@ export const sendGroupMediaMessage = async (req, res) => {
 
     const messageWithSender = await Message.findById(newMessage._id).populate(
       "senderId",
-      "name email"
+      "name email",
     );
 
     const socketIds = getReceiverSocketIds(
-      group.participants.filter((id) => String(id) !== String(req.user._id))
+      group.participants.filter((id) => String(id) !== String(req.user._id)),
     );
     socketIds.forEach((socketId) =>
-      io.to(socketId).emit("newMessage", messageWithSender)
+      io.to(socketId).emit("newMessage", messageWithSender),
     );
 
     res.status(201).json({

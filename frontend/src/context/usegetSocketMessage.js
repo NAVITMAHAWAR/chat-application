@@ -22,7 +22,7 @@ const useGetSocketMessage = () => {
       const notification = new Audio(sound);
       notification.volume = 1;
       notification.play().catch(() => {
-        // Browsers can block audio until the user interacts with the page.
+        
       });
 
       const senderId =
@@ -39,6 +39,7 @@ const useGetSocketMessage = () => {
 
       if (!isCurrentConversation) return;
       setMessages((currentMessages) => [...currentMessages, newMessage]);
+      
     };
 
     socket.on("newMessage", handleNewMessage);

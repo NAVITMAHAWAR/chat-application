@@ -4,6 +4,7 @@ import {
   getGroupMessages,
   getGroups,
   getMessage,
+  getUnreadCounts,
   sendGroupMessage,
   sendMessage,
   sendMediaMessage,
@@ -16,6 +17,7 @@ const messageRouter = Router();
 
 messageRouter.post("/send/:id", secureRoute, sendMessage);
 messageRouter.get("/get/:id", secureRoute, getMessage);
+messageRouter.get("/unread-counts", secureRoute, getUnreadCounts);
 
 // Media (image / file)
 messageRouter.post(

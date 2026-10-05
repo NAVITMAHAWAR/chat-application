@@ -37,12 +37,17 @@ function User(props) {
   const userEmail = user.email ? user.email : "No recent message";
   const profilePic = user.profilePic ? user.profilePic : "";
 
+  const clearUnread = useConversation((state) => state.clearUnread);
+  const unreadCounts = useConversation((state) => state.unreadCounts);
+const unread = unreadCounts[user._id] || 0;
+
   const handleSelect = () => {
     if (selectConversation?._id === user._id) return;
     setSelectConversation(user);
     // Clear the previous chat immediately so stale messages are not
     // shown while the new conversation is being fetched.
     setMessages([]);
+    clearUnread(user._id); // ← badge hatao
   };
 
   return (
@@ -61,6 +66,14 @@ function User(props) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <h3 className="truncate text-sm font-semibold text-[#17211f]">{userName}</h3>
+          <div className="flex items-center gap-1">
+    {unread > 0 && (
+      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center">
+        {unread > 99 ? "99+" : unread}
+      </span>
+    )}
+    <span className="text-[10px] text-gray-400">Now</span>
+  </div>
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">

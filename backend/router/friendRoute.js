@@ -8,6 +8,7 @@ import {
   getFriends,
   getIncomingRequests,
   getOutgoingRequests,
+  getPeople,
   searchUsers,
   unfriend,
 } from "../controllers/friendController.js";
@@ -23,6 +24,7 @@ router.delete("/request/:requestId", cancelFriendRequest);
 router.get("/friends", getFriends);
 router.get("/requests/incoming", getIncomingRequests);
 router.get("/requests/outgoing", getOutgoingRequests);
+router.get("/people", getPeople);
 router.get("/search", searchUsers);
 router.delete("/friends/:friendId", unfriend);
 

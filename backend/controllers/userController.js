@@ -104,7 +104,7 @@ export const LogOut = async (req, res) => {
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     });
     res.status(200).json({ message: "User Logged out Successfully" });
   } catch (error) {

@@ -16,12 +16,17 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-const corsOptions = {
-  origin: [
+const clientOrigins = (process.env.CLIENT_ORIGINS || [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5175",
-  ],
+  ].join(","))
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: clientOrigins,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,

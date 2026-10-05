@@ -15,6 +15,7 @@ export const SocketProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
 	const [friendsVersion, setFriendsVersion] = useState(0)
+	const notifyFriendsChanged = () => setFriendsVersion((version) => version + 1)
 
 	const [authUser] = useAuth()
 	const userId = authUser?.user?._id
@@ -58,6 +59,6 @@ export const SocketProvider = ({ children }) => {
 
 	}, [userId])
 	return (
-		<socketContext.Provider value={{ socket, online, friendsVersion }}>{children}</socketContext.Provider>
+		<socketContext.Provider value={{ socket, online, friendsVersion, notifyFriendsChanged }}>{children}</socketContext.Provider>
 	)
 }

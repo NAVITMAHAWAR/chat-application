@@ -1,5 +1,11 @@
 # React + Vite
 
+## API deployment URL
+
+The frontend uses `VITE_API_URL` for both HTTP requests and Socket.IO. Local development defaults to `http://localhost:5001`; production defaults to the same origin as the frontend, which works when a reverse proxy serves the API there.
+
+For a separately hosted backend, set `VITE_API_URL` to its public HTTPS URL (for example, `https://api.example.com`) in the frontend hosting environment and rebuild the frontend. Set backend `CLIENT_ORIGINS` to the exact frontend origin (for example, `https://chat.example.com`). The backend must be deployed on a publicly reachable host; do not use `localhost` for users on other devices.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

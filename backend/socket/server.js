@@ -6,10 +6,14 @@ import Message from "../model/message.model.js";
 
 const app = express();
 const server = http.createServer(app);
+const configuredOrigins = process.env.CLIENT_ORIGINS
+  ?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: configuredOrigins?.length ? configuredOrigins : "*",
     methods: ["GET", "POST"],
   },
 });

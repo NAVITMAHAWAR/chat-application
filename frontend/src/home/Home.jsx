@@ -2,8 +2,21 @@ import Left from "../left/Left"
 import LogOut from "../left/left1/LogOut"
 import Right from "../right/Right"
 import useConversation from "../stateManage/conversation.js"
+import useChatNotifications from "../context/useChatNotifications"
+import { useEffect } from "react"
 
 const Home = () => {
+
+  // Home.jsx
+useEffect(() => {
+  const unsub = useConversation.subscribe((state) => {
+    const total = Object.values(state.unreadCounts).reduce((a, b) => a + b, 0);
+    document.title = total > 0 ? `(${total}) Chat App` : "Chat App";
+  });
+  return unsub;
+}, []);
+
+  useChatNotifications()
   const selectConversation = useConversation((state) => state.selectConversation)
 
   return (
