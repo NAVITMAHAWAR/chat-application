@@ -76,7 +76,7 @@ const useSendMessage = () => {
       return true;
     } catch (error) {
       console.log("Error from send media", error);
-      alert(error.response?.data?.message || "Failed to send file");
+      toast.error(error.response?.data?.message || "Failed to send file");
       return false;
     }
   };

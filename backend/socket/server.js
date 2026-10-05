@@ -42,9 +42,10 @@ io.on("connection", (socket) => {
 
   if (userId) {
     users.set(socket.id, userId);
-    User.findByIdAndUpdate(userId, { isOnline: true }).catch(console.log);
+    const lastLogin = new Date();
+    User.findByIdAndUpdate(userId, { isOnline: true, lastLogin }).catch(console.log);
     io.emit("getOnline", [...new Set(users.values())]);
-    io.emit("userStatusChanged", { userId, isOnline: true });
+    io.emit("userStatusChanged", { userId, isOnline: true, lastLogin });
   }
 
   // ───────── TYPING ─────────
@@ -143,11 +144,12 @@ io.on("connection", (socket) => {
         (id) => String(id) === String(uid),
       );
       if (!stillOnline) {
+        const lastLogout = new Date();
         User.findByIdAndUpdate(uid, {
           isOnline: false,
-          lastLogout: new Date(),
+          lastLogout,
         }).catch(console.log);
-        io.emit("userStatusChanged", { userId: uid, isOnline: false });
+        io.emit("userStatusChanged", { userId: uid, isOnline: false, lastLogout });
       }
     }
     io.emit("getOnline", [...new Set(users.values())]);

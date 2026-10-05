@@ -179,7 +179,7 @@ export const getFriends = async (req, res) => {
   try {
     const [user, conversations] = await Promise.all([
       User.findById(req.user._id)
-        .populate("friends", "name email isOnline")
+        .populate("friends", "name email isOnline lastLogin lastLogout")
         .select("friends"),
       Conversations.find({
         participants: req.user._id,

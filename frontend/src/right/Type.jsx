@@ -5,6 +5,7 @@ import { useSocketContext } from "../context/SocketContext.jsx";
 import useConversation from "../stateManage/conversation.js";
 import EmojiPicker from "emoji-picker-react";
 import API_URL from "../api";
+import toast from "react-hot-toast";
 
 const Type = () => {
   const [message, setMessage] = useState("");
@@ -82,7 +83,7 @@ const Type = () => {
 
     // 10MB limit (frontend check)
     if (file.size > 10 * 1024 * 1024) {
-      alert("File size must be under 10MB");
+      toast.error("File size must be under 10MB");
       return;
     }
 

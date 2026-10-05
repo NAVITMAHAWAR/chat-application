@@ -7,15 +7,18 @@
 
 import { useSocketContext } from "../context/SocketContext.jsx";
 import useConversation from "../stateManage/conversation.js";
+import { formatLastSeen } from "../utils/presence.js";
 
 /**
  * @param {UserProps} props
  */
 function User(props) {
 
-  const {online} = useSocketContext()
+  const {online, presence, now} = useSocketContext()
   const user = props && props.user ? props.user : {};
-  const isOnline = online.includes(user._id)
+  const isOnline = online.includes(String(user._id))
+  const latestPresence = presence[String(user._id)];
+  const lastSeen = latestPresence?.lastLogout || latestPresence?.lastLogin || user.lastLogout || user.lastLogin;
 
   const selectConversation = useConversation((state) => state.selectConversation);
   const setSelectConversation = useConversation((state) => state.setSelectConversation);
@@ -34,7 +37,6 @@ function User(props) {
     : "U";
 
   const userName = user.name ? user.name : "Unknown User";
-  const userEmail = user.email ? user.email : "No recent message";
   const profilePic = user.profilePic ? user.profilePic : "";
 
   const clearUnread = useConversation((state) => state.clearUnread);
@@ -77,7 +79,7 @@ const unread = unreadCounts[user._id] || 0;
         </div>
 
         <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-[#71807b]">{isOnline ? "Online now" : userEmail}</p>
+          <p className="truncate text-xs text-[#71807b]">{isOnline ? "Online now" : formatLastSeen(lastSeen, now)}</p>
           {isOnline && <span className="shrink-0 text-[10px] font-semibold text-[#168263]">Active</span>}
         </div>
       </div>

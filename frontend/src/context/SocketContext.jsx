@@ -14,11 +14,22 @@ export const useSocketContext = () => {
 export const SocketProvider = ({ children }) => {
 	const [socket, setSocket] = useState(null)
 	const [online, setOnline] = useState([])
+	const [presence, setPresence] = useState({})
+	const [now, setNow] = useState(0)
 	const [friendsVersion, setFriendsVersion] = useState(0)
 	const notifyFriendsChanged = () => setFriendsVersion((version) => version + 1)
 
 	const [authUser] = useAuth()
 	const userId = authUser?.user?._id
+
+	useEffect(() => {
+		const initialUpdate = setTimeout(() => setNow(Date.now()), 0)
+		const timer = setInterval(() => setNow(Date.now()), 60_000)
+		return () => {
+			clearTimeout(initialUpdate)
+			clearInterval(timer)
+		}
+	}, [])
 
 	useEffect(() => {
 		useConversation.getState().setSelectConversation(null)
@@ -41,6 +52,15 @@ export const SocketProvider = ({ children }) => {
 			nextSocket.on("getOnline", (users) => {
 				setOnline(users)
 			})
+			nextSocket.on("userStatusChanged", (status) => {
+				setPresence((current) => {
+					const statusKey = String(status.userId)
+					if (statusKey === String(userId) && status.isOnline) {
+						return { [statusKey]: status }
+					}
+					return { ...current, [statusKey]: status }
+				})
+			})
 			nextSocket.on("friendRequest", (request) => {
 				toast(`${request.from?.name || "Someone"} sent you a friend request`)
 			})
@@ -59,6 +79,6 @@ export const SocketProvider = ({ children }) => {
 
 	}, [userId])
 	return (
-		<socketContext.Provider value={{ socket, online, friendsVersion, notifyFriendsChanged }}>{children}</socketContext.Provider>
+		<socketContext.Provider value={{ socket, online, presence, now, friendsVersion, notifyFriendsChanged }}>{children}</socketContext.Provider>
 	)
 }

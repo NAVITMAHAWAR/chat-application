@@ -24,6 +24,13 @@ export const secureRoute = async (req, res, next) => {
         message: "user not found",
       });
     }
+    
+    if(user.isBlocked){
+      return res.status(403).json({
+        message: "Account Blocked"
+      })
+    }
+    
     req.user = user;
     next();
   } catch (error) {

@@ -45,6 +45,7 @@ export const showInAppNotification = ({ title, body, onClick }) => {
         title,
         body,
         onOpen: onClick,
+		
       }),
     { duration: 5000 },
   );
