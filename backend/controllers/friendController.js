@@ -179,7 +179,7 @@ export const getFriends = async (req, res) => {
   try {
     const [user, conversations] = await Promise.all([
       User.findById(req.user._id)
-        .populate("friends", "name email isOnline lastLogin lastLogout")
+        .populate("friends", "name email isOnline lastLogin lastLogout profilePic bio")
         .select("friends"),
       Conversations.find({
         participants: req.user._id,
@@ -296,7 +296,7 @@ const getPeoplePage = async (req, res, query = "") => {
     }
 
     const page = await User.find(filter)
-      .select("name email isOnline")
+      .select("name email isOnline profilePic bio")
       .limit(SEARCH_PAGE_SIZE + 1)
       .sort({ name: 1, _id: 1 });
     const hasMore = page.length > SEARCH_PAGE_SIZE;

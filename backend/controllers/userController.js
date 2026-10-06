@@ -90,6 +90,8 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        profilePic: user.profilePic || "",
+        bio: user.bio || "",
       },
     });
   } catch (error) {
@@ -117,7 +119,7 @@ export const getUserProfile = async (req, res) => {
   try {
     const loggedUser = req.user._id;
     const filtredUser = await User.find({ _id: { $ne: loggedUser } }).select(
-      "-password",
+      "name email isOnline profilePic bio",
     );
     res.status(200).json({
       message: "All User find Successfully",
@@ -241,6 +243,8 @@ export const verifyRegisterOtp = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
+        profilePic: newUser.profilePic || "",
+        bio: newUser.bio || "",
       },
     });
   } catch (error) {
@@ -278,5 +282,91 @@ export const resendRegisterOtp = async (req, res) => {
   } catch (error) {
     console.log("resendRegisterOtp error:", error);
     res.status(500).json({ message: "Failed to resend OTP" });
+  }
+};
+
+// ───── Get my profile ─────
+export const getMyProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ───── Update profile (name, bio) ─────
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, bio } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (name !== undefined) {
+      const trimmed = String(name).trim();
+      if (!trimmed) {
+        return res.status(400).json({ message: "Name cannot be empty" });
+      }
+      user.name = trimmed;
+    }
+
+    if (bio !== undefined) {
+      user.bio = String(bio).trim().slice(0, 200);
+    }
+
+    await user.save();
+
+    const safeUser = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePic: user.profilePic,
+      bio: user.bio,
+      isOnline: user.isOnline,
+    };
+
+    res.status(200).json({
+      message: "Profile updated",
+      user: safeUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ───── Update avatar ─────
+export const updateAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Optional: delete old local avatar file
+    // if (user.profilePic && user.profilePic.startsWith("/uploads/")) { ... }
+
+    user.profilePic = `/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.status(200).json({
+      message: "Avatar updated",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic,
+        bio: user.bio,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

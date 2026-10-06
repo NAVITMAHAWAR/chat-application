@@ -116,6 +116,8 @@ const useChatNotifications = () => {
         showBrowserNotification({
           title: senderName,
           body: preview,
+          // Per-conversation tag: ek chat ki notification dusri ko replace na kare
+          tag: `chat-${newMessage.conversationId || senderId}`,
           onClick: openConversation,
         });
       }

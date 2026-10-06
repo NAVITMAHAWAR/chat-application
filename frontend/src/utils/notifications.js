@@ -14,27 +14,35 @@ export const requestNotificationPermission = async () => {
   return result === "granted";
 };
 
-export const showBrowserNotification = ({ title, body, icon, onClick }) => {
+export const showBrowserNotification = ({
+  title,
+  body,
+  icon,
+  tag,
+  onClick,
+}) => {
   if (!("Notification" in window) || Notification.permission !== "granted") {
     return;
   }
   if (isAppActive()) return;
 
-  const n = new Notification(title, {
+  const options = {
     body,
     icon: icon || "/vite.svg",
     badge: "/vite.svg",
-    tag: "chat-message", // same tag = replace old notification
-  });
+    // Per-conversation tag: alag chats ki notifications ek dusre ko
+    // overwrite nahi karengi (default: "chat-message")
+    tag: tag || "chat-message",
+    renotify: true,
+  };
+
+  const n = new Notification(title, options);
 
   n.onclick = () => {
     window.focus();
     n.close();
     if (onClick) onClick();
   };
-
-  // Auto close after 5s
-  setTimeout(() => n.close(), 5000);
 };
 
 export const showInAppNotification = ({ title, body, onClick }) => {
@@ -45,7 +53,6 @@ export const showInAppNotification = ({ title, body, onClick }) => {
         title,
         body,
         onOpen: onClick,
-		
       }),
     { duration: 5000 },
   );

@@ -30,7 +30,7 @@ const UsersTable = () => {
   const [detailUser, setDetailUser] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
 
-  const load = () => fetchUsers({ search, status, page, limit: 15 });
+  const load = () => fetchUsers({ search, status, page, limit: 10 });
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -42,7 +42,7 @@ const UsersTable = () => {
   }, [search]);
 
   useEffect(() => {
-    fetchUsers({ search: debouncedSearch, status, page, limit: 15 });
+    fetchUsers({ search: debouncedSearch, status, page, limit: 10 });
   }, [fetchUsers, debouncedSearch, status, page]);
 
   // Live socket updates

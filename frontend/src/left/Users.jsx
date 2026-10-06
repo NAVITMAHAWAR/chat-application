@@ -1,17 +1,25 @@
 import useGetFriends from "../context/useGetFriends";
+import { useSocketContext } from "../context/SocketContext.jsx";
 import User from "./User";
 
 const Users = ({ search = "" }) => {
   const { friends, loading } = useGetFriends();
+  const { online } = useSocketContext();
+  const onlineIds = new Set(online.map(String));
+  const sortedFriends = [...friends].sort(
+    (left, right) =>
+      Number(onlineIds.has(String(right._id))) -
+      Number(onlineIds.has(String(left._id)))
+  );
 
   const normalizedSearch = search.trim().toLowerCase();
   const visibleUsers = normalizedSearch
-    ? friends.filter((user) =>
+    ? sortedFriends.filter((user) =>
         `${user.name || ""} ${user.email || ""}`
           .toLowerCase()
           .includes(normalizedSearch)
       )
-    : friends;
+    : sortedFriends;
 
   if (loading) {
     return (

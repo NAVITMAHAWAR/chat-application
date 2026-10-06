@@ -8,6 +8,7 @@
 import { useSocketContext } from "../context/SocketContext.jsx";
 import useConversation from "../stateManage/conversation.js";
 import { formatLastSeen } from "../utils/presence.js";
+import API_URL from "../api";
 
 /**
  * @param {UserProps} props
@@ -37,7 +38,11 @@ function User(props) {
     : "U";
 
   const userName = user.name ? user.name : "Unknown User";
-  const profilePic = user.profilePic ? user.profilePic : "";
+  const profilePic = user.profilePic
+  ? user.profilePic.startsWith("http")
+    ? user.profilePic
+    : `${API_URL}${user.profilePic}`
+  : "";
 
   const clearUnread = useConversation((state) => state.clearUnread);
   const unreadCounts = useConversation((state) => state.unreadCounts);

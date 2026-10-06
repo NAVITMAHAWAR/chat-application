@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { FiActivity, FiBarChart2, FiClock, FiLogOut, FiMenu, FiMessageCircle, FiUsers, FiX } from "react-icons/fi";
+import { FiActivity, FiBarChart2, FiClock, FiEdit2, FiLogOut, FiMenu, FiMessageCircle, FiUsers, FiX } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/authContext";
 import axios from "axios";
 import API_URL from "../api";
+import EditProfile from "./components/EditProfile.jsx";
 
 const navItems = [
   { to: "/admin", end: true, label: "Overview", icon: FiActivity },
@@ -17,6 +18,7 @@ const AdminDashboard = () => {
   const [authUser, setAuthUser] = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -61,6 +63,9 @@ const AdminDashboard = () => {
               <p className="truncate text-xs text-[#84918b]">{authUser?.user?.email}</p>
             </div>
           </div>
+          <button type="button" onClick={() => setShowEditProfile(true)} className="mb-2 flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm font-semibold text-[#71807b] transition hover:bg-[#f1f5f3] hover:text-[#17211f]">
+            <FiEdit2 aria-hidden="true" size={16} /> Edit profile
+          </button>
           <button type="button" onClick={handleLogout} className="flex h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm font-semibold text-[#71807b] transition hover:bg-rose-50 hover:text-rose-700">
             <FiLogOut aria-hidden="true" size={16} /> Sign out
           </button>
@@ -78,6 +83,7 @@ const AdminDashboard = () => {
         </header>
         <main className="min-w-0 flex-1 overflow-auto px-4 py-6 sm:px-7 sm:py-7"><Outlet /></main>
       </div>
+      {showEditProfile && <EditProfile onClose={() => setShowEditProfile(false)} />}
     </div>
   );
 };

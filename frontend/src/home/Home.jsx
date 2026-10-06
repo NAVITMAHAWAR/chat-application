@@ -9,11 +9,18 @@ const Home = () => {
 
   // Home.jsx
 useEffect(() => {
-  const unsub = useConversation.subscribe((state) => {
+  const applyBadge = (state) => {
     const total = Object.values(state.unreadCounts).reduce((a, b) => a + b, 0);
     document.title = total > 0 ? `(${total}) Chat App` : "Chat App";
-  });
-  return unsub;
+    // OS-level badge (Chrome/Edge/Android): taskbar/dock pe unread count
+    if (navigator.setAppBadge) {
+      if (total > 0) navigator.setAppBadge(total).catch(() => {});
+      else navigator.clearAppBadge?.().catch(() => {});
+    }
+  };
+
+  applyBadge(useConversation.getState()); // initial value
+  return useConversation.subscribe(applyBadge);
 }, []);
 
   useChatNotifications()
@@ -21,8 +28,10 @@ useEffect(() => {
 
   return (
     <div className="flex h-[100dvh] min-h-[480px] min-h-0 w-full gap-0 overflow-hidden bg-[#f1f5f3] p-0 text-[#17211f] sm:gap-3 sm:p-3">
-      <LogOut />
-      <aside className={`${selectConversation ? "hidden sm:flex" : "flex"} min-h-0 min-w-0 w-full shrink-0 sm:w-[min(340px,32vw)]`}>
+      <div className={`${selectConversation ? "hidden sm:flex" : "flex"} h-full w-16 shrink-0 sm:w-[72px]`}>
+        <LogOut />
+      </div>
+      <aside className={`${selectConversation ? "hidden sm:flex" : "flex"} min-h-0 min-w-0 flex-1 sm:flex-none sm:w-[min(340px,32vw)]`}>
         <Left />
       </aside>
       <main className={`${selectConversation ? "flex" : "hidden sm:flex"} min-h-0 min-w-0 flex-1`}>

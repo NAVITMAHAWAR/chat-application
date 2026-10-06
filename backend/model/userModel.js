@@ -10,6 +10,16 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    // ── Profile fields ──
+    profilePic: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 200,
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
